@@ -12,7 +12,7 @@ import ProblemViewPage from "./pages/problems/ProblemViewPage";
 import AdminUsersPage from "./pages/admin/AdminUsersPage";
 import HomePage from "./pages/HomePage";
 import LoginPage from "./pages/auth/LoginPage";
-import SignupPage from "./pages/auth/SignupPage";
+import SignupPage from "./pages/auth/SignUpPage";
 import DashboardPage from "./pages/dashboard/Dashboard";
 import { ROUTES } from "./utils/constant";
 import { getProfile } from "./store/userSlice";
