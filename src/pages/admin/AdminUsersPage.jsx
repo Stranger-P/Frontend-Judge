@@ -186,7 +186,7 @@ const AdminUsersPage = () => {
                           </div>
                           <div>
                             <div className="font-medium">{user.username}</div>
-                            <div className="text-sm text-muted-foreground">{user.email}</div>
+                            {/* <div className="text-sm text-muted-foreground">{user.email}</div> */}
                           </div>
                         </div>
                       </TableCell>
