@@ -30,7 +30,13 @@ import { useToast } from '../../hooks/use-toast';
 import { Panel, PanelGroup, PanelResizeHandle } from 'react-resizable-panels';
 import { ScrollArea } from '../../components/ui/scroll-area';
 import axios from 'axios';
-
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select"
 /* ─────────────────────────────────── helpers ─────────────────────────────────── */
 const submissionsPerPage = 5;
 const BASE_URL = import.meta.env.VITE_API_BASE_URL;
@@ -148,12 +154,12 @@ const ProblemViewPage = () => {
 
   /* Code editor state */
   const [code, setCode] = useState(
-    `#include <bits/stdc++.h>
-using namespace std;
-int main() {
-  // Write C++ code here
-  return 0;
-}`
+    `  #include <bits/stdc++.h>
+    using namespace std;
+    int main() {
+      // Write C++ code here
+      return 0;
+    }`
   );
   const [language, setLanguage] = useState('cpp');
   const [input, setInput] = useState('');
@@ -182,6 +188,7 @@ int main() {
   /* ── NEW: AI Review state */
   const [aiReview, setAiReview] = useState(null);
   const [loadingAiReview, setLoadingAiReview] = useState(false);
+  const [selectedTab, setSelectedTab] = useState("testcase");
 
   /* Fetch problem details */
   const {
@@ -249,32 +256,34 @@ int main() {
   };
 
   /* ───────────────────── language template switch ────────────────────────── */
-  useEffect(() => {
-    if (language === 'cpp') {
-      setCode(
-        `#include <bits/stdc++.h>
-using namespace std;
-int main() {
+  const getBoilerplate = (lang) => {
+    switch (lang) {
+      case "cpp":
+        return `  #include <bits/stdc++.h>
+  using namespace std;
+  int main() {
   // Write C++ code here
-  return 0;
-}`
-      );
-    } else if (language === 'python') {
-      setCode('print("write your logic")');
-    } else if (language === 'java') {
-      setCode(
-        `class Main {
-  public static void main(String[] args) {
-    System.out.println("Try CodeJudge");
-  }
-}`
-      );
-    } else {
-      setCode('console.log("write your logic");');
+    return 0;
+  }`;
+      case "python":
+        return `  print("write your logic")`;
+      case "java":
+        return  `  class Main {
+      public static void main(String[] args) {
+      System.out.println("Try CodeJudge");
     }
+  }`;
+      default:
+        return "";
+    }
+  };
+  
+  useEffect(() => {
+    setCode(getBoilerplate(language));
   }, [language]);
 
   const handleRun = async () => {
+    setSelectedTab("result");
     setIsRunning(true);
     try {
       const response = await axios.post(
@@ -300,6 +309,7 @@ int main() {
   };
 
   const handleSubmit = async () => {
+    setSelectedTab("verdict");
     setIsSubmitting(true);
     setVerdict(null);
     setSubmissionId(null);
@@ -359,9 +369,7 @@ int main() {
   }, [submissionId, isSubmitting, toast]);
 
   const handleReset = () => {
-    setCode(`function twoSum(nums, target) {
-    // Write your solution here
-}`);
+    setCode(getBoilerplate(language));
     setOutput('');
     setInput('');
     setVerdict(null);
@@ -471,25 +479,25 @@ int main() {
                           <div>
                             <h3 className="text-lg font-semibold mb-3 text-slate-200">Examples</h3>
                             {problem.sampleTestCases.map((testCase, index) => (
-  <div key={index} className="mb-4 bg-slate-900/30 p-4 rounded-lg border border-slate-800">
-    <div className="font-medium text-slate-200 mb-2">Example {index + 1}:</div>
-    <div className="grid grid-cols-1 gap-3">
-      <div>
-        <div className="text-sm font-medium text-slate-400 mb-1">Input:</div>
-        {/* Note: The outer div is the styled container, so <pre> doesn't need styles */}
-        <div className="bg-slate-900 p-2 rounded border border-slate-700 font-mono text-sm">
-          <pre className="text-green-400">{testCase.input}</pre>
-        </div>
-      </div>
-      <div>
-        <div className="text-sm font-medium text-slate-400 mb-1">Output:</div>
-        <div className="bg-slate-900 p-2 rounded border border-slate-700 font-mono text-sm">
-          <pre className="text-blue-400">{testCase.output}</pre>
-        </div>
-      </div>
-    </div>
-  </div>
-))}
+                              <div key={index} className="mb-4 bg-slate-900/30 p-4 rounded-lg border border-slate-800">
+                                <div className="font-medium text-slate-200 mb-2">Example {index + 1}:</div>
+                                <div className="grid grid-cols-1 gap-3">
+                                  <div>
+                                    <div className="text-sm font-medium text-slate-400 mb-1">Input:</div>
+                                    {/* Note: The outer div is the styled container, so <pre> doesn't need styles */}
+                                    <div className="bg-slate-900 p-2 rounded border border-slate-700 font-mono text-sm">
+                                      <pre className="text-green-400">{testCase.input}</pre>
+                                    </div>
+                                  </div>
+                                  <div>
+                                    <div className="text-sm font-medium text-slate-400 mb-1">Output:</div>
+                                    <div className="bg-slate-900 p-2 rounded border border-slate-700 font-mono text-sm">
+                                      <pre className="text-blue-400">{testCase.output}</pre>
+                                    </div>
+                                  </div>
+                                </div>
+                              </div>
+                            ))}
                           </div>
                           <div>
                             <h3 className="text-lg font-semibold mb-3 text-slate-200">Constraints</h3>
@@ -545,7 +553,6 @@ int main() {
           </Panel>
 
           <PanelResizeHandle withHandle />
-
           {/* Right Panel - Code Editor, Run, Submit, Verdict */}
           <Panel defaultSize={50} minSize={30}>
             <PanelGroup direction="vertical">
@@ -554,16 +561,17 @@ int main() {
                   <div className="border-b border-slate-800 p-4 flex-shrink-0">
                     <div className="flex items-center justify-between">
                       <div className="flex items-center space-x-4">
-                        <select
-                          value={language}
-                          onChange={(e) => setLanguage(e.target.value)}
-                          className="bg-slate-800 border border-slate-700 rounded px-3 py-1 text-white text-sm focus:outline-none focus:border-slate-600"
-                        >
-                          {/* <option value="javascript">JavaScript</option> */}
-                          <option value="python">Python</option>
-                          <option value="java">Java</option>
-                          <option value="cpp">C++</option>
-                        </select>
+                      <Select value={language} onValueChange={setLanguage}>
+                        <SelectTrigger className="w-[120px] bg-slate-800 border border-slate-700 text-white text-sm">
+                          <SelectValue placeholder="Select language" />
+                        </SelectTrigger>
+                        <SelectContent className="bg-slate-800 text-white border-slate-700">
+                          {/* <SelectItem value="javascript">JavaScript</SelectItem> */}
+                          <SelectItem value="python">Python</SelectItem>
+                          <SelectItem value="java">Java</SelectItem>
+                          <SelectItem value="cpp">C++</SelectItem>
+                        </SelectContent>
+                      </Select>
                       </div>
                       <div className="flex items-center space-x-2">
                         <Button variant="ghost" size="sm" onClick={copyCode} className="text-slate-400 hover:text-white hover:bg-slate-800">
@@ -608,7 +616,7 @@ int main() {
               <PanelResizeHandle withHandle />
               <Panel defaultSize={30} minSize={20}>
                 <div className="h-full bg-slate-950 border-t border-slate-800">
-                  <Tabs defaultValue="testcase" className="w-full h-full flex flex-col">
+                <Tabs value={selectedTab} onValueChange={setSelectedTab} className="w-full h-full flex flex-col">
                     <div className="flex items-center justify-between px-4 py-2 border-b border-slate-800 flex-shrink-0">
                       <TabsList className="bg-slate-900 border border-slate-700">
                         <TabsTrigger

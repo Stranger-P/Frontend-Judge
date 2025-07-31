@@ -1,6 +1,17 @@
 import React from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { Code, Menu, User, LogOut, Settings, Trophy, Edit, Shield } from 'lucide-react';
+import {
+  Code,
+  Menu,
+  User,
+  LogOut,
+  Settings,
+  Trophy,
+  Edit,
+  Shield,
+  ListTodo,
+  LayoutDashboard,
+} from 'lucide-react';
 import { Button } from '../ui/button';
 import {
   DropdownMenu,
@@ -9,12 +20,12 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '../ui/dropdown-menu';
+import { Avatar, AvatarFallback } from '../ui/avatar';
+import { Sheet, SheetContent, SheetTrigger } from '../ui/sheet';
+import { Separator } from '../ui/separator';
 import { useDispatch, useSelector } from 'react-redux';
 import { logoutUser } from '../../store/userSlice';
 import { ROUTES } from '../../utils/constant';
-
-// NOTE: All logic, including Redux hooks and handlers, remains UNCHANGED.
-// Only the className props and component styles have been updated for theme consistency.
 
 const Navbar = () => {
   const dispatch = useDispatch();
@@ -30,7 +41,7 @@ const Navbar = () => {
   };
 
   return (
-    <header className="sticky top-0 z-50 w-full border-b border-gray-700/50 bg-[#282828]">
+    <header className="sticky top-0 z-50 w-full border-b border-gray-700/50 bg-background">
       <nav className="container flex h-16 items-center justify-between px-4">
         {/* Logo */}
         <Link to={ROUTES.HOME} className="flex items-center space-x-2">
@@ -38,77 +49,70 @@ const Navbar = () => {
           <span className="text-xl font-bold text-white">CodeJudge</span>
         </Link>
 
-        {/* Desktop Navigation Links */}
+        {/* Desktop Navigation */}
         <div className="hidden md:flex items-center space-x-6">
           <Link
             to={ROUTES.PROBLEMS}
-            className="text-sm font-medium text-gray-400 transition-colors hover:text-white"
+            className="text-sm font-medium text-muted-foreground hover:text-white flex items-center gap-1"
           >
+            <ListTodo className="h-4 w-4" />
             Problems
           </Link>
           {isAuthenticated && (
             <Link
               to={ROUTES.DASHBOARD}
-              className="text-sm font-medium text-gray-400 transition-colors hover:text-white"
+              className="text-sm font-medium text-muted-foreground hover:text-white flex items-center gap-1"
             >
+              <LayoutDashboard className="h-4 w-4" />
               Dashboard
             </Link>
           )}
         </div>
 
-        {/* Right Side: Auth Buttons or User Menu */}
+        {/* Right: Auth/User */}
         <div className="flex items-center space-x-2">
           {isAuthenticated ? (
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <Button variant="ghost" className="relative h-9 w-9 rounded-full hover:bg-gray-800">
-                  <User className="h-5 w-5 text-gray-400" />
+                <Button variant="ghost" className="h-9 w-9 p-0 rounded-full hover:bg-muted">
+                  <Avatar className="h-8 w-8">
+                    <AvatarFallback>{user?.username?.[0]?.toUpperCase()}</AvatarFallback>
+                  </Avatar>
                 </Button>
               </DropdownMenuTrigger>
-              <DropdownMenuContent className="w-56 bg-[#282828] border-gray-700 text-gray-300" align="end">
-                <div className="flex items-center justify-start gap-3 p-2">
-                  <div className="flex flex-col space-y-1 leading-none">
-                    <p className="font-medium text-white">{user?.username}</p>
-                    <p className="w-[200px] truncate text-sm text-gray-500">
-                      {user?.email}
-                    </p>
-                  </div>
+              <DropdownMenuContent className="w-56" align="end">
+                <div className="px-3 py-2">
+                  <p className="text-sm font-medium leading-none">{user?.username}</p>
+                  <p className="text-xs text-muted-foreground truncate">{user?.email}</p>
                 </div>
-                <DropdownMenuSeparator className="bg-gray-700" />
-                {/* <DropdownMenuItem asChild className="cursor-pointer focus:bg-gray-700/80 focus:text-white">
-                  <Link to={ROUTES.PROFILE}>
-                    <User className="mr-2 h-4 w-4 text-gray-400" />
-                    Profile
-                  </Link>
-                </DropdownMenuItem> */}
-                <DropdownMenuItem asChild className="cursor-pointer focus:bg-gray-700/80 focus:text-white">
+                <DropdownMenuSeparator />
+                <DropdownMenuItem asChild>
                   <Link to={ROUTES.DASHBOARD}>
-                    <Trophy className="mr-2 h-4 w-4 text-gray-400" />
+                    <Trophy className="mr-2 h-4 w-4" />
                     Dashboard
                   </Link>
                 </DropdownMenuItem>
                 {(user?.role === 'problemSetter' || user?.role === 'admin') && (
-                  <DropdownMenuItem asChild className="cursor-pointer focus:bg-gray-700/80 focus:text-white">
+                  <DropdownMenuItem asChild>
                     <Link to={ROUTES.CREATED_PROBLEM}>
-                      <Edit className="mr-2 h-4 w-4 text-gray-400" />
+                      <Edit className="mr-2 h-4 w-4" />
                       My Problems
                     </Link>
                   </DropdownMenuItem>
                 )}
                 {user?.role === 'admin' && (
-                  <DropdownMenuItem asChild className="cursor-pointer focus:bg-gray-700/80 focus:text-white">
+                  <DropdownMenuItem asChild>
                     <Link to={ROUTES.ADMIN_USERS}>
-                      <Shield className="mr-2 h-4 w-4 text-gray-400" />
+                      <Shield className="mr-2 h-4 w-4" />
                       Manage Users
                     </Link>
                   </DropdownMenuItem>
                 )}
-                {/* <DropdownMenuItem className="cursor-pointer focus:bg-gray-700/80 focus:text-white">
-                  <Settings className="mr-2 h-4 w-4 text-gray-400" />
-                  Settings
-                </DropdownMenuItem> */}
-                <DropdownMenuSeparator className="bg-gray-700" />
-                <DropdownMenuItem onClick={handleLogout} className="cursor-pointer text-red-400 focus:bg-red-900/50 focus:text-red-300">
+                <DropdownMenuSeparator />
+                <DropdownMenuItem
+                  onClick={handleLogout}
+                  className="text-destructive focus:bg-destructive/20"
+                >
                   <LogOut className="mr-2 h-4 w-4" />
                   Logout
                 </DropdownMenuItem>
@@ -117,49 +121,65 @@ const Navbar = () => {
           ) : (
             <div className="hidden md:flex items-center space-x-2">
               <Link to={ROUTES.LOGIN}>
-                <Button variant="ghost" className="hover:bg-gray-800 text-gray-300">
+                <Button variant="ghost" className="text-white hover:bg-muted">
                   Sign In
                 </Button>
               </Link>
               <Link to={ROUTES.SIGNUP}>
-                <Button className="bg-blue-600 text-white hover:bg-blue-500">
-                  Sign Up
-                </Button>
+                <Button className="bg-blue-600 text-white hover:bg-blue-500">Sign Up</Button>
               </Link>
             </div>
           )}
 
-          {/* Mobile Menu (Hamburger) */}
-          <div className="md:hidden">
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button variant="ghost" size="icon" className="hover:bg-gray-800">
-                  <Menu className="h-5 w-5 text-gray-300" />
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent className="w-48 bg-[#282828] border-gray-700 text-gray-300" align="end">
-                <DropdownMenuItem asChild className="focus:bg-gray-700/80 focus:text-white">
-                  <Link to={ROUTES.PROBLEMS}>Problems</Link>
-                </DropdownMenuItem>
+          {/* Mobile Menu */}
+          <Sheet>
+            <SheetTrigger asChild>
+              <Button variant="ghost" size="icon" className="md:hidden hover:bg-muted">
+                <Menu className="h-5 w-5 text-gray-300" />
+              </Button>
+            </SheetTrigger>
+            <SheetContent side="right" className="bg-background text-foreground">
+              <div className="flex flex-col space-y-4 mt-6">
+                <Link
+                  to={ROUTES.PROBLEMS}
+                  className="text-sm font-medium flex items-center gap-1 hover:underline"
+                >
+                  <ListTodo className="h-4 w-4" />
+                  Problems
+                </Link>
                 {isAuthenticated && (
-                  <DropdownMenuItem asChild className="focus:bg-gray-700/80 focus:text-white">
-                    <Link to={ROUTES.DASHBOARD}>Dashboard</Link>
-                  </DropdownMenuItem>
+                  <Link
+                    to={ROUTES.DASHBOARD}
+                    className="text-sm font-medium flex items-center gap-1 hover:underline"
+                  >
+                    <LayoutDashboard className="h-4 w-4" />
+                    Dashboard
+                  </Link>
                 )}
-                <DropdownMenuSeparator className="bg-gray-700" />
                 {!isAuthenticated && (
                   <>
-                    <DropdownMenuItem asChild className="focus:bg-gray-700/80 focus:text-white">
-                       <Link to={ROUTES.LOGIN}>Sign In</Link>
-                    </DropdownMenuItem>
-                     <DropdownMenuItem asChild className="focus:bg-gray-700/80 focus:text-white">
-                       <Link to={ROUTES.SIGNUP}>Sign Up</Link>
-                    </DropdownMenuItem>
+                    <Link to={ROUTES.LOGIN} className="text-sm font-medium hover:underline">
+                      Sign In
+                    </Link>
+                    <Link to={ROUTES.SIGNUP} className="text-sm font-medium hover:underline">
+                      Sign Up
+                    </Link>
                   </>
                 )}
-              </DropdownMenuContent>
-            </DropdownMenu>
-          </div>
+              </div>
+              <Separator className="my-4" />
+              {isAuthenticated && (
+                <Button
+                  onClick={handleLogout}
+                  variant="ghost"
+                  className="text-destructive w-full justify-start"
+                >
+                  <LogOut className="mr-2 h-4 w-4" />
+                  Logout
+                </Button>
+              )}
+            </SheetContent>
+          </Sheet>
         </div>
       </nav>
     </header>
